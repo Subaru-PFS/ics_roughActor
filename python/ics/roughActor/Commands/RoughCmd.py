@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-from builtins import object
-import time
-
 import opscore.protocols.keys as keys
 import opscore.protocols.types as types
 from opscore.utility.qstr import qstr
@@ -62,7 +59,7 @@ class RoughCmd(object):
 
         cmd_txt = cmd.cmd.keywords['raw'].values[0]
 
-        ret = self.actor.controllers['rough'].pumpCmd(cmd_txt, cmd=cmd)
+        ret = self.actor.controllers[self.name].pumpCmd(cmd_txt, cmd=cmd)
         cmd.finish('text="returned %r"' % (ret))
 
     def ident(self, cmd):

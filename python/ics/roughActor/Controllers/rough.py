@@ -1,8 +1,5 @@
-from builtins import range
-from builtins import object
 import logging
 import socket
-import time
 
 from opscore.utility.qstr import qstr
 
@@ -79,9 +76,8 @@ class rough(object):
             cmd.warn('text=%s' % qstr('reply to command %r is the unexpected %r (vs %r)' % (cmdStr,
                                                                                             replyStart,
                                                                                             replyCheck)))
-        
         return reply[5:].strip().split(b';')
-    
+
     def ident(self, cmd=None):
         cmdStr = b'?S801'
 
@@ -113,7 +109,7 @@ class rough(object):
         cmdStr = b"!C803 1"
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         return ret
-    
+
     def stopStandby(self, cmd=None):
         cmdStr = b"!C803 0"
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
@@ -161,7 +157,7 @@ class rough(object):
             cmd.inform('roughStatus=0x%08x,%r' % (status, ', '.join(allFlags)))
 
         return allFlags
-                 
+
     def speed(self, cmd=None):
         cmdStr = b'?V802'
 
@@ -170,12 +166,12 @@ class rough(object):
 
         rpm =  int(status[0]) * 60
         status = int(status[1], base=16)
-        
+
         cmd.inform('roughSpeed=%s' % (rpm))
         self.statusWord(status, cmd=cmd)
-        
+
         return rpm, status
-        
+
     def pumpTemps(self, cmd=None):
         cmdStr = b'?V808'
 
@@ -183,19 +179,19 @@ class rough(object):
         speeds = self.parseReply(cmdStr, ret, cmd=cmd)
 
         cmd.inform('roughTemps=%s,%s' % (speeds[0], speeds[1]))
-        
+
         return speeds
-        
+
     def status(self, cmd=None):
         reply = []
-        
+
         speeds = self.speed(cmd=cmd)
-        #VAW = self.pumpVAW(cmd=cmd)
+        # VAW = self.pumpVAW(cmd=cmd)
         temps = self.pumpTemps(cmd=cmd)
         reply.extend(speeds)
-        #reply.extend(VAW)
+        # reply.extend(VAW)
         reply.extend(temps)
-        
+
         return reply
 
     def pumpCmd(self, cmdStr, cmd=None):
