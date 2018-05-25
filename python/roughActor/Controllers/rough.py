@@ -116,47 +116,108 @@ class rough(object):
         return ret
 
     def statusWord(self, status, cmd=None):
-        flags = ('Fail',
-                 'Below stopped speed',
-                 'Above normal speed',
-                 'Vent valve energized',
-                 'Start command active',
-                 'Serial enable active',
-                 'Standby active',
-                 'Above 50% full speed',
-                 'Parallel control mode',
-                 'Serial control mode',
-                 'Invalid podule software',
-                 'Podule failed',
-                 'Failed to reach speed within timer',
-                 'Overspeed or overcurrent tripped',
-                 'Pump internal temp. system failure',
-                 'Serial enable is inactive',
-                 'bit 17',
-                 'bit 18',
+        flags = ('Decelerating',
+                 'Running/Accelerating',
+                 'Standby speed',
+                 'Normal speed',
+                 'Above ramp speed',
+                 'Above overload speed',
+                 'Control mode bit 0',
+                 'Control mode bit 1',
+                 'bit 8',
+                 'bit 9',
+                 'Serial enable',
+                 'bit 11',
+                 'bit 12',
+                 'Control mode bit 2',
+                 'bit 14',
+                 'bit 15',
+                 
+                 'Power limit active',
+                 'Acceleration limited',
+                 'Deceleration limited',
                  'bit 19',
-                 'bit 20',
+                 'Service due!',
                  'bit 21',
-                 'bit 22',
-                 'bit 23',
+                 'Warning active',
+                 'Alarm active',
                  'bit 24',
                  'bit 25',
                  'bit 26',
                  'bit 27',
                  'bit 28',
-                 'bit 29',
+                 'bit 39',
                  'bit 30',
                  'bit 31')
 
+        warningFlags = ('bit 0',
+                        'Pump temperature low',
+                        'bit 2',
+                        'bit 3',
+                        'bit 4',
+                        'bit 5',
+                        'Pump temperature high',
+                        'bit 7',
+                        'bit 8',
+                        'bit 9',
+                        'Pump temperature above max',
+                        'bit 11',
+                        'bit 12',
+                        'bit 13',
+                        'bit 14',
+                        'Self-test warning')
+
+        errorFlags = ('bit 0',
+                      'Over voltage trip',
+                      'Over current trip',
+                      'Over temperature trip',
+                      'Under temperature trip',
+                      'Power stage fault',
+                      'bit 6',
+                      'bit 7',
+                      'H/W fault latched',
+                      'EEPROM fault',
+                      'bit10',
+                      'Parameters not loaded',
+                      'Self test fault',
+                      'Serial mode interlock',
+                      'Overload timeout',
+                      'Acceleration timeout')
+                      
         allFlags = []
+        statusWord = status & 0xffff
         for i in range(32):
-            if status & (1 << i):
+            if statusWord & (1 << i):
                 allFlags.append(flags[i])
 
-        if cmd is not None:
-            cmd.inform('roughStatus=0x%08x,%r' % (status, ', '.join(allFlags)))
+        warnings = []
+        warningWord = status >> 32
+        for i in range(16):
+            if warningWord & (1 << i):
+                warnings.append(warningFlags[i])
 
-        return allFlags
+        errors = []
+        errorWord = status >> 48
+        for i in range(16):
+            if errorWord & (1 << i):
+                errors.append(errorFlags[i])
+
+        if cmd is not None:
+            cmd.inform('%sStatus=0x%04x,%r' % (self.name,
+                                               statusWord, ', '.join(allFlags)))
+            if len(warnings) > 0:
+                cmd.warn('%sWarnings=0x%02x,%r' % (self.name,
+                                                   warningWord, ','.join(warnings)))
+            else:
+                cmd.inform('%sWarnings=0x%02x,%r' % (self.name,
+                                                     warningWord, 'OK'))
+            if len(errors) > 0:
+                cmd.warn('%sErrors=0x%02x,%r' % (self.name,
+                                                 errorWord, ','.join(errors)))
+            else:
+                cmd.inform('%sErrors=0x%02x,%r' % (self.name,
+                                                   errorWord, 'OK'))
+            return allFlags
 
     def speed(self, cmd=None):
         cmdStr = b'?V802'
