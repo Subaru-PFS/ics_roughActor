@@ -3,7 +3,7 @@ import socket
 
 from opscore.utility.qstr import qstr
 
-class rough(object):
+class pump(object):
     def __init__(self, actor, name,
                  loglevel=logging.INFO):
 
@@ -60,15 +60,15 @@ class rough(object):
         cmd.diag('text="received %r"' % ret)
         s.close()
 
-        return ret
+        return ret.decode('latin-1')
 
     def parseReply(self, cmdStr, reply, cmd=None):
         cmdType = cmdStr[:1]
 
-        if cmdType == b'?':
-            replyFlag = b'='
-        elif cmdType == b'!':
-            replyFlag = b'*'
+        if cmdType == '?':
+            replyFlag = '='
+        elif cmdType == '!':
+            replyFlag = '*'
 
         replyStart = reply[:5]
         replyCheck = replyFlag + cmdStr[1:5]
@@ -76,7 +76,7 @@ class rough(object):
             cmd.warn('text=%s' % qstr('reply to command %r is the unexpected %r (vs %r)' % (cmdStr,
                                                                                             replyStart,
                                                                                             replyCheck)))
-        return reply[5:].strip().split(b';')
+        return reply[5:].strip().split(';')
 
     def ident(self, cmd=None):
         cmdStr = b'?S801'
@@ -228,7 +228,7 @@ class rough(object):
         rpm =  int(status[0]) * 60
         status = int(status[1], base=16)
 
-        cmd.inform('roughSpeed=%s' % (rpm))
+        cmd.inform('pumpSpeed=%s' % (rpm))
         self.statusWord(status, cmd=cmd)
 
         return rpm, status
@@ -239,7 +239,7 @@ class rough(object):
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         speeds = self.parseReply(cmdStr, ret, cmd=cmd)
 
-        cmd.inform('roughTemps=%s,%s' % (speeds[0], speeds[1]))
+        cmd.inform('pumpTemps=%s,%s' % (speeds[0], speeds[1]))
 
         return speeds
 

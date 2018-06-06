@@ -16,31 +16,18 @@ class RoughCmd(object):
         # passed a single argument, the parsed and typed command.
         #
         self.vocab = [
-            ('rough1', '@raw', self.roughRaw),
-            ('rough1', 'ident', self.ident),
-            ('rough1', 'status', self.status),
-            ('rough1', 'start', self.startRough),
-            ('rough1', 'stop', self.stopRough),
-            ('rough1', 'standby <percent>', self.standby),
-            ('rough1', 'standby off', self.standbyOff),
+            ('pump', '@raw', self.roughRaw),
+            ('pump', 'ident', self.ident),
+            ('pump', 'status', self.status),
+            ('pump', 'start', self.startRough),
+            ('pump', 'stop', self.stopRough),
+            ('pump', 'standby <percent>', self.standby),
+            ('pump', 'standby off', self.standbyOff),
 
-            ('rough2', '@raw', self.roughRaw),
-            ('rough2 ident', '', self.ident),
-            ('rough2 status', '', self.status),
-            ('rough2 start', '', self.startRough),
-            ('rough2 stop', '', self.stopRough),
-            ('rough2 standby', '<percent>', self.standby),
-            ('rough2 standby', 'off', self.standbyOff),
-
-            ('roughGauge1', '@raw', self.gaugeRaw),
-            ('roughGauge1', 'status', self.pressure),
-            ('roughGauge1', '<setRaw>', self.setRaw),
-            ('roughGauge1', '<getRaw>', self.getRaw),
-
-            ('roughGauge2', '@raw', self.gaugeRaw),
-            ('roughGauge2', 'status', self.pressure),
-            ('roughGauge2', '<setRaw>', self.setRaw),
-            ('roughGauge2', '<getRaw>', self.getRaw),
+            ('gauge', '@raw', self.gaugeRaw),
+            ('gauge', 'status', self.pressure),
+            ('gauge', '<setRaw>', self.setRaw),
+            ('gauge', '<getRaw>', self.getRaw),
         ]
 
         # Define typed command arguments for the above commands.
