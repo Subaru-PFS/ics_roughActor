@@ -225,13 +225,13 @@ class pump(object):
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         status = self.parseReply(cmdStr, ret, cmd=cmd)
 
-        rpm =  int(status[0]) * 60
+        hz = int(status[0])
         status = int(status[1], base=16)
 
-        cmd.inform('pumpSpeed=%s' % (rpm))
+        cmd.inform('pumpSpeed=%d' % (hz))
         self.statusWord(status, cmd=cmd)
 
-        return rpm, status
+        return hz, status
 
     def pumpTemp(self, cmd=None):
         cmdStr = '?V808'
