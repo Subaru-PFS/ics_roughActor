@@ -133,6 +133,6 @@ class RoughCmd(object):
         
         ctrlr = cmd.cmd.name
         ret = self.actor.controllers[ctrlr].pressure(cmd=cmd)
-        cmd.finish('roughPressure%s=%g' % (ctrlr[-1], ret))
+        cmd.finish('pressure=%g' % (ret))
 
         
