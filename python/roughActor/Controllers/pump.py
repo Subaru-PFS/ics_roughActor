@@ -239,20 +239,48 @@ class pump(object):
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         speeds = self.parseReply(cmdStr, ret, cmd=cmd)
 
-        cmd.inform('pumpTemps=%s,%s' % (speeds[0], speeds[1]))
+        cmd.inform('pumpTemp=%d' % (int(speeds[1], base=10)))
 
         return speeds
 
+    def pumpLifetimes(self, cmd=None):
+
+        past = []
+        left = []
+        for q in 811, 810, 813:
+            cmdStr = f'?V{q}'
+
+            ret = self.sendOneCommand(cmdStr, cmd=cmd)
+            reply = self.parseReply(cmdStr, ret, cmd=cmd)
+
+            past.append(int(reply[0], base=10))
+            if q == 813:
+                left.append(int(reply[1], base=10))
+        
+        for q in 814, 815:
+            cmdStr = f'?V{q}'
+
+            ret = self.sendOneCommand(cmdStr, cmd=cmd)
+            reply = self.parseReply(cmdStr, ret, cmd=cmd)
+
+            left.append(int(reply[1], base=10))
+
+        cmd.inform('pumpTimes=%d,%d,%d' % tuple(past))
+        cmd.inform('pumpLife=%d,%d,%d' % tuple(left))
+
+        return past, left
+    
     def status(self, cmd=None):
         reply = []
 
         speeds = self.speed(cmd=cmd)
         # VAW = self.pumpVAW(cmd=cmd)
-        temps = self.pumpTemps(cmd=cmd)
+        temps = self.pumpTemp(cmd=cmd)
         reply.extend(speeds)
         # reply.extend(VAW)
         reply.extend(temps)
 
+        ret = self.pumpLifetimes(cmd)
         return reply
 
     def pumpCmd(self, cmdStr, cmd=None):
