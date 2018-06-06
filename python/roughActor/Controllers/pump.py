@@ -79,7 +79,7 @@ class pump(object):
         return reply[5:].strip().split(';')
 
     def ident(self, cmd=None):
-        cmdStr = b'?S801'
+        cmdStr = '?S801'
 
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         reply = self.parseReply(cmdStr, ret, cmd=cmd)
@@ -87,7 +87,7 @@ class pump(object):
         return reply
 
     def startPump(self, cmd=None):
-        cmdStr = b'!C802 1'
+        cmdStr = '!C802 1'
 
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         reply = self.parseReply(cmdStr, ret, cmd=cmd)
@@ -95,7 +95,7 @@ class pump(object):
         return reply
 
     def stopPump(self, cmd=None):
-        cmdStr = b'!C802 0'
+        cmdStr = '!C802 0'
 
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         reply = self.parseReply(cmdStr, ret, cmd=cmd)
@@ -103,15 +103,15 @@ class pump(object):
         return reply
 
     def startStandby(self, percent=90, cmd=None):
-        cmdStr = b"!S805 %d" % (percent)
+        cmdStr = "!S805 %d" % (percent)
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
 
-        cmdStr = b"!C803 1"
+        cmdStr = "!C803 1"
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         return ret
 
     def stopStandby(self, cmd=None):
-        cmdStr = b"!C803 0"
+        cmdStr = "!C803 0"
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         return ret
 
@@ -220,7 +220,7 @@ class pump(object):
             return allFlags
 
     def speed(self, cmd=None):
-        cmdStr = b'?V802'
+        cmdStr = '?V802'
 
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         status = self.parseReply(cmdStr, ret, cmd=cmd)
@@ -233,8 +233,8 @@ class pump(object):
 
         return rpm, status
 
-    def pumpTemps(self, cmd=None):
-        cmdStr = b'?V808'
+    def pumpTemp(self, cmd=None):
+        cmdStr = '?V808'
 
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         speeds = self.parseReply(cmdStr, ret, cmd=cmd)
