@@ -115,6 +115,31 @@ class pump(object):
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
         return ret
 
+    def errorString(self, errorMask):
+        errorFlags = ('bit 0',
+                      'Over voltage trip',
+                      'Over current trip',
+                      'Over temperature trip',
+                      'Under temperature trip',
+                      'Power stage fault',
+                      'bit 6',
+                      'bit 7',
+                      'H/W fault latched',
+                      'EEPROM fault',
+                      'bit10',
+                      'Parameters not loaded',
+                      'Self test fault',
+                      'Serial mode interlock',
+                      'Overload timeout',
+                      'Acceleration timeout')
+                      
+        errors = []
+        for i in range(16):
+            if errorMask & (1 << i):
+                errors.append(errorFlags[i])
+
+        return errors
+    
     def statusWord(self, status, cmd=None):
         flags = ('Decelerating',
                  'Running/Accelerating',
@@ -167,41 +192,21 @@ class pump(object):
                         'bit 14',
                         'Self-test warning')
 
-        errorFlags = ('bit 0',
-                      'Over voltage trip',
-                      'Over current trip',
-                      'Over temperature trip',
-                      'Under temperature trip',
-                      'Power stage fault',
-                      'bit 6',
-                      'bit 7',
-                      'H/W fault latched',
-                      'EEPROM fault',
-                      'bit10',
-                      'Parameters not loaded',
-                      'Self test fault',
-                      'Serial mode interlock',
-                      'Overload timeout',
-                      'Acceleration timeout')
-                      
         allFlags = []
-        statusWord = status & 0xffff
+        statusWord = status[0]
         for i in range(32):
             if statusWord & (1 << i):
                 allFlags.append(flags[i])
 
         warnings = []
-        warningWord = status >> 32
+        warningWord = status[1]
         for i in range(16):
             if warningWord & (1 << i):
                 warnings.append(warningFlags[i])
 
-        errors = []
-        errorWord = status >> 48
-        for i in range(16):
-            if errorWord & (1 << i):
-                errors.append(errorFlags[i])
-
+        errorWord = status[2]
+        errors = self.errorString(errorWord)
+        
         if cmd is not None:
             cmd.inform('%sStatus=0x%04x,%r' % (self.name,
                                                statusWord, ', '.join(allFlags)))
@@ -219,14 +224,33 @@ class pump(object):
                                                    errorWord, 'OK'))
             return allFlags
 
+    def quickStatus(self, cmd):
+        cmdStr = '?V802'
+
+        ret = self.sendOneCommand(cmdStr, cmd=cmd)
+        reply = self.parseReply(cmdStr, ret, cmd=cmd)
+
+        hz = int(reply[0])
+        errorWord = int(reply[4], base=16)
+        
+        if errorWord == 0:
+            status = "OK"
+        else:
+            status = self.errorString(errorWord)
+
+        return hz, errorWord, status
+    
     def speed(self, cmd=None):
         cmdStr = '?V802'
 
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
-        status = self.parseReply(cmdStr, ret, cmd=cmd)
+        reply = self.parseReply(cmdStr, ret, cmd=cmd)
 
-        hz = int(status[0])
-        status = int(status[1], base=16)
+        hz = int(reply[0])
+        status = ((int(reply[1], base=16) | (int(reply[2], base=16) << 16)),
+                  int(reply[3], base=16),
+                  int(reply[4], base=16))
+        
 
         cmd.inform('pumpSpeed=%d' % (hz))
         self.statusWord(status, cmd=cmd)
