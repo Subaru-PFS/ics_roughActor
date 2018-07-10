@@ -13,7 +13,17 @@ class OurActor(actorcore.ICC.ICC):
         # This sets up the connections to/from the hub, the logger, and the twisted reactor.
         #
         super().__init__(name, productName=productName)
-#
+
+        self.everConnected = False
+        self.monitors = dict()
+
+    def connectionMade(self):
+        if self.everConnected is False:
+            logging.info("Attaching all controllers...")
+            self.allControllers = [s.strip() for s in self.config.get(self.name, 'startingControllers').split(',')]
+            self.attachAllControllers()
+            self.everConnected = True
+
 # To work
 def main():
     import argparse
