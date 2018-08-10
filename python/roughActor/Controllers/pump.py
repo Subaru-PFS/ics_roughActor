@@ -261,11 +261,12 @@ class pump(object):
         cmdStr = '?V808'
 
         ret = self.sendOneCommand(cmdStr, cmd=cmd)
-        speeds = self.parseReply(cmdStr, ret, cmd=cmd)
+        temps = self.parseReply(cmdStr, ret, cmd=cmd)
 
-        cmd.inform('pumpTemp=%d' % (int(speeds[1], base=10)))
+        cmd.inform('pumpTemps=%d,%d' % (int(temps[0], base=10),
+                                        int(temps[1], base=10)))
 
-        return speeds
+        return temps
 
     def pumpLifetimes(self, cmd=None):
 
