@@ -16,6 +16,7 @@ class OurActor(actorcore.ICC.ICC):
 
         self.everConnected = False
         self.monitors = dict()
+        self.statusLoopCB = self.statusLoop
 
     def connectionMade(self):
         if self.everConnected is False:
