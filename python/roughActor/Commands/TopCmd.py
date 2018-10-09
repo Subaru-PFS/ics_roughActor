@@ -16,12 +16,14 @@ class TopCmd(object):
         self.vocab = [
             ('ping', '', self.ping),
             ('status', '', self.status),
+            ('monitor', '<period>', self.monitor),
         ]
 
         # Define typed command arguments for the above commands.
-        self.keys = keys.KeysDictionary("mcs_mcs", (1, 1),
+        self.keys = keys.KeysDictionary("rough_rough", (1, 1),
+                                        keys.Key("period", types.Int(),
+                                                 help='the period to sample at.'),
                                         )
-
 
     def ping(self, cmd):
         """Query the actor for liveness/happiness."""
@@ -37,3 +39,10 @@ class TopCmd(object):
         cmd.inform('text="Present!"')
         cmd.finish()
 
+    def monitor(self, cmd):
+        """ Enable/disable/adjust period controller monitors. """
+
+        period = cmd.cmd.keywords['period'].values[0]
+
+        self.actor.monitor('gauge', period, cmd=cmd)
+        cmd.finish()

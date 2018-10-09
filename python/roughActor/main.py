@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import logging
-
+from twisted.internet import reactor
 import actorcore.ICC
 
 class OurActor(actorcore.ICC.ICC):
@@ -23,6 +23,31 @@ class OurActor(actorcore.ICC.ICC):
             self.allControllers = [s.strip() for s in self.config.get(self.name, 'startingControllers').split(',')]
             self.attachAllControllers()
             self.everConnected = True
+
+    def statusLoop(self, controller):
+        try:
+            self.callCommand("%s status" % (controller))
+        except:
+            pass
+
+        if self.monitors[controller] > 0:
+            reactor.callLater(self.monitors[controller],
+                              self.statusLoopCB,
+                              controller)
+
+    def monitor(self, controller, period, cmd=None):
+        if controller not in self.monitors:
+            self.monitors[controller] = 0
+
+        running = self.monitors[controller] > 0
+        self.monitors[controller] = period
+
+        if (not running) and period > 0:
+            cmd.warn('text="starting %gs loop for %s"' % (self.monitors[controller],
+                                                          controller))
+            self.statusLoopCB(controller)
+        else:
+            cmd.warn('text="adjusted %s loop to %gs"' % (controller, self.monitors[controller]))
 
 # To work
 def main():
