@@ -61,41 +61,40 @@ class RoughCmd(object):
         ret = self.actor.controllers[ctrlr].ident(cmd=cmd)
         cmd.finish('ident=%s' % (','.join(ret)))
 
-    def status(self, cmd):
+    def status(self, cmd, doFinish=True):
         """ Return all status keywords. """
-        ctrlr = cmd.cmd.name
-        self.actor.controllers[ctrlr].status(cmd=cmd)
-        cmd.finish()
+
+        ctrlr = self.actor.controllers['pump']
+        ctrlr.status(cmd=cmd)
+
+        if doFinish:
+            cmd.finish()
 
     def standby(self, cmd):
         """ Go into standby mode, where the pump runs at a lower speed than normal. """
         
-        ctrlr = cmd.cmd.name
         percent = cmd.cmd.keywords['percent'].values[0]
-        ret = self.actor.controllers[ctrlr].startStandby(percent=percent,
-                                                         cmd=cmd)
+        ret = self.actor.controllers['pump'].startStandby(percent=percent,
+                                                          cmd=cmd)
         cmd.finish('text=%r' % (qstr(ret)))
 
     def standbyOff(self, cmd):
         """ Drop out of standby mode and go back to full-speed."""
         
-        ctrlr = cmd.cmd.name
-        ret = self.actor.controllers[ctrlr].stopStandby(cmd=cmd)
+        ret = self.actor.controllers['pump'].stopStandby(cmd=cmd)
             
         cmd.finish('text=%r' % (qstr(ret)))
 
     def startRough(self, cmd):
         """ Turn on roughing pump. """
         
-        ctrlr = cmd.cmd.name
-        ret = self.actor.controllers[ctrlr].startPump(cmd=cmd)
+        ret = self.actor.controllers['pump'].startPump(cmd=cmd)
         cmd.finish('text=%s' % (','.join(ret)))
 
     def stopRough(self, cmd):
         """ Turn off roughing pump. """
 
-        ctrlr = cmd.cmd.name
-        ret = self.actor.controllers[ctrlr].stopPump(cmd=cmd)
+        ret = self.actor.controllers['pump'].stopPump(cmd=cmd)
         cmd.finish('text=%s' % (','.join(ret)))
 
     def gaugeRaw(self, cmd):
