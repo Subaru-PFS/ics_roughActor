@@ -42,7 +42,10 @@ class TopCmd(object):
         self.actor.sendVersionKey(cmd)
         
         cmd.inform('text="Present!"')
-        cmd.finish()
+
+        roughCmds = self.actor.commandSets['RoughCmd']
+        roughCmds.status(cmd, doFinish=False)
+        roughCmds.pressure(cmd)
 
     def monitor(self, cmd):
         """ Enable/disable/adjust period controller monitors. """
