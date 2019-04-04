@@ -130,8 +130,12 @@ class RoughCmd(object):
     def pressure(self, cmd):
         """ Fetch the latest pressure reading from a rough-side pressure gauge. """
         
-        ctrlr = cmd.cmd.name
-        ret = self.actor.controllers[ctrlr].pressure(cmd=cmd)
-        cmd.finish('pressure=%g' % (ret))
+        gauge = self.actor.controllers['gauge']
+        cmdStr = gauge.makePressureCmd()
+        rawResp = gauge.sendOneCommand(cmdStr, cmd=cmd)
+        resp = gauge.parseResponse(rawResp, cmd=cmd)
+        val = gauge.parsePressure(resp)
+
+        cmd.finish('pressure=%g' % (val))
 
         
