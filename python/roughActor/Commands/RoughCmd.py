@@ -101,37 +101,38 @@ class RoughCmd(object):
         """ Send a raw command to a rough-side pressure gauge. """
 
         cmd_txt = cmd.cmd.keywords['raw'].values[0]
-        ctrlr = cmd.cmd.name
         
-        ret = self.actor.controllers[ctrlr].gaugeCmd(cmd_txt, cmd=cmd)
+        ret = self.actor.controllers['gauge'].gaugeCmd(cmd_txt, cmd=cmd)
         cmd.finish('text="returned %s"' % (qstr(ret)))
 
     def getRaw(self, cmd):
         """ Send a direct query command to the PCM's gauge controller. """
 
-        ctrlr = cmd.cmd.name
         cmdCode = cmd.cmd.keywords['getRaw'].values[0]
         
-        ret = self.actor.controllers[ctrlr].gaugeRawQuery(cmdCode, cmd=cmd)
+        ret = self.actor.controllers['gauge'].gaugeRawQuery(cmdCode, cmd=cmd)
         cmd.finish('text=%s' % (qstr("returned %r" % ret)))
 
     def setRaw(self, cmd):
         """ Send a direct control command to the PCM's gauge controller. """
 
-        ctrlr = cmd.cmd.name
         parts = cmd.cmd.keywords['setRaw'].values[0]
         cmdCode, cmdValue = parts
 
         cmd.diag('text="code=%r, value=%r"' % (cmdCode, cmdValue))
     
-        ret = self.actor.controllers[ctrlr].gaugeRawSet(cmdCode, cmdValue, cmd=cmd)
+        ret = self.actor.controllers['gauge'].gaugeRawSet(cmdCode, cmdValue, cmd=cmd)
         cmd.finish('text=%s' % (qstr("returned %r" % ret)))
 
     def pressure(self, cmd):
         """ Fetch the latest pressure reading from a rough-side pressure gauge. """
         
-        ctrlr = cmd.cmd.name
-        ret = self.actor.controllers[ctrlr].pressure(cmd=cmd)
-        cmd.finish('pressure=%g' % (ret))
+        gauge = self.actor.controllers['gauge']
+        cmdStr = gauge.makePressureCmd()
+        rawResp = gauge.sendOneCommand(cmdStr, cmd=cmd)
+        resp = gauge.parseResponse(rawResp, cmd=cmd)
+        val = gauge.parsePressure(resp)
+
+        cmd.finish('pressure=%g' % (val))
 
         
