@@ -1,6 +1,6 @@
 import opscore.protocols.keys as keys
 import opscore.protocols.types as types
-from opscore.utility.qstr import qstr
+
 
 class TopCmd(object):
 
@@ -21,7 +21,7 @@ class TopCmd(object):
 
         # Define typed command arguments for the above commands.
         self.keys = keys.KeysDictionary("mcs_mcs", (1, 1),
-                                        keys.Key("controllers", types.String()*(1,None),
+                                        keys.Key("controllers", types.String() * (1, None),
                                                  help='the names of 1 or more controllers to load'),
                                         keys.Key("controller", types.String(),
                                                  help='the names a controller.'),
@@ -29,6 +29,12 @@ class TopCmd(object):
                                                  help='the period to sample at.'),
                                         )
 
+    def controllerKey(self):
+        """Return controllers keyword."""
+        controllerNames = list(self.actor.controllers.keys())
+        key = 'controllers=%s' % (','.join([c for c in controllerNames]) if controllerNames else None)
+
+        return key
 
     def ping(self, cmd):
         """Query the actor for liveness/happiness."""
@@ -40,8 +46,9 @@ class TopCmd(object):
         """Report camera status and actor version. """
 
         self.actor.sendVersionKey(cmd)
-        
+
         cmd.inform('text="Present!"')
+        cmd.inform(self.controllerKey())
 
         roughCmds = self.actor.commandSets['RoughCmd']
         roughCmds.status(cmd, doFinish=False)
@@ -49,7 +56,7 @@ class TopCmd(object):
 
     def monitor(self, cmd):
         """ Enable/disable/adjust period controller monitors. """
-        
+
         period = cmd.cmd.keywords['period'].values[0]
         controllers = cmd.cmd.keywords['controllers'].values
 
@@ -57,13 +64,13 @@ class TopCmd(object):
         for c in self.actor.config.get(self.actor.name, 'controllers').split(','):
             c = c.strip()
             knownControllers.append(c)
-        
+
         foundOne = False
         for c in controllers:
             if c not in knownControllers:
                 cmd.warn('text="not starting monitor for %s: unknown controller"' % (c))
                 continue
-                
+
             self.actor.monitor(c, period, cmd=cmd)
             foundOne = True
 
@@ -71,4 +78,3 @@ class TopCmd(object):
             cmd.finish()
         else:
             cmd.fail('text="no controllers found"')
-
