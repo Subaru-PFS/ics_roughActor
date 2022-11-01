@@ -1,3 +1,5 @@
+import time
+
 import opscore.protocols.keys as keys
 import opscore.protocols.types as types
 from opscore.utility.qstr import qstr
@@ -55,7 +57,7 @@ class RoughCmd(object):
          - DSP software version
          - PIC software version
          - full speed in RPM
-         
+
         """
         ctrlr = cmd.cmd.name
         ret = self.actor.controllers[ctrlr].ident(cmd=cmd)
@@ -72,7 +74,7 @@ class RoughCmd(object):
 
     def standby(self, cmd):
         """ Go into standby mode, where the pump runs at a lower speed than normal. """
-        
+
         percent = cmd.cmd.keywords['percent'].values[0]
         ret = self.actor.controllers['pump'].startStandby(percent=percent,
                                                           cmd=cmd)
@@ -80,38 +82,50 @@ class RoughCmd(object):
 
     def standbyOff(self, cmd):
         """ Drop out of standby mode and go back to full-speed."""
-        
+
         ret = self.actor.controllers['pump'].stopStandby(cmd=cmd)
-            
+
         cmd.finish('text=%r' % (qstr(ret)))
 
     def startRough(self, cmd):
         """ Turn on roughing pump. """
-        
-        ret = self.actor.controllers['pump'].startPump(cmd=cmd)
-        cmd.finish('text=%s' % (','.join(ret)))
+
+        self.status(cmd, doFinish=False)
+        cmd.inform('text="starting pump....."')
+        self.actor.controllers['pump'].startPump(cmd=cmd)
+        time.sleep(5)
+        self.status(cmd, doFinish=True)
 
     def stopRough(self, cmd):
         """ Turn off roughing pump. """
 
-        ret = self.actor.controllers['pump'].stopPump(cmd=cmd)
-        cmd.finish('text=%s' % (','.join(ret)))
+        self.status(cmd, doFinish=False)
+        cmd.inform('text="stopping pump....."')
+        self.actor.controllers['pump'].stopPump(cmd=cmd)
+        time.sleep(5)
+        self.status(cmd, doFinish=True)
 
     def gaugeRaw(self, cmd):
         """ Send a raw command to a rough-side pressure gauge. """
 
         cmd_txt = cmd.cmd.keywords['raw'].values[0]
-        
-        ret = self.actor.controllers['gauge'].gaugeCmd(cmd_txt, cmd=cmd)
+
+        gauge = self.actor.controllers['gauge']
+        ret = gauge.sendOneCommand(cmd_txt, cmd=cmd)
+        time.sleep(3)
         cmd.finish('text="returned %s"' % (qstr(ret)))
 
     def getRaw(self, cmd):
         """ Send a direct query command to the PCM's gauge controller. """
 
         cmdCode = cmd.cmd.keywords['getRaw'].values[0]
-        
-        ret = self.actor.controllers['gauge'].gaugeRawQuery(cmdCode, cmd=cmd)
-        cmd.finish('text=%s' % (qstr("returned %r" % ret)))
+
+        gauge = self.actor.controllers['gauge']
+        getCmd = gauge.makeRawQueryCmd(cmdCode)
+
+        rawResp = gauge.sendOneCommand(getCmd, cmd=cmd)
+        ret = gauge.parseResponse(rawResp, cmd=cmd)
+        cmd.finish('text="%s (raw=%s)"' % (ret, rawResp))
 
     def setRaw(self, cmd):
         """ Send a direct control command to the PCM's gauge controller. """
@@ -120,13 +134,15 @@ class RoughCmd(object):
         cmdCode, cmdValue = parts
 
         cmd.diag('text="code=%r, value=%r"' % (cmdCode, cmdValue))
-    
-        ret = self.actor.controllers['gauge'].gaugeRawSet(cmdCode, cmdValue, cmd=cmd)
+
+        gauge = self.actor.controllers['gauge']
+        setCmd = gauge.makeRawSetCmd(cmdCode, cmdValue, cmd=cmd)
+        ret = gauge.sendOneCommand(setCmd, cmd=cmd)
         cmd.finish('text=%s' % (qstr("returned %r" % ret)))
 
     def pressure(self, cmd):
         """ Fetch the latest pressure reading from a rough-side pressure gauge. """
-        
+
         gauge = self.actor.controllers['gauge']
         cmdStr = gauge.makePressureCmd()
         rawResp = gauge.sendOneCommand(cmdStr, cmd=cmd)
@@ -134,5 +150,3 @@ class RoughCmd(object):
         val = gauge.parsePressure(resp)
 
         cmd.finish('pressure=%g' % (val))
-
-        
