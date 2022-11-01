@@ -61,8 +61,7 @@ class TopCmd(object):
         controllers = cmd.cmd.keywords['controllers'].values
 
         knownControllers = []
-        for c in self.actor.config.get(self.actor.name, 'controllers').split(','):
-            c = c.strip()
+        for c in self.actor.actorConfig['controllers']['all']:
             knownControllers.append(c)
 
         foundOne = False

@@ -13,9 +13,9 @@ class pump(object):
         self.logger.setLevel(loglevel)
 
         self.EOL = b'\r'
-        
-        self.host = self.actor.config.get(self.name, 'host')
-        self.port = int(self.actor.config.get(self.name, 'port'))
+
+        self.host = self.actor.actorConfig[self.name]['host']
+        self.port = self.actor.actorConfig[self.name]['port']
 
     def start(self, cmd=None):
         pass
